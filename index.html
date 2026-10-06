@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Johari Window</title>
+<meta name="theme-color" content="#2E5B53">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Johari">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F0; --surface:#FFFFFF; --ink:#1C2A28; --muted:#5A6967; --line:#D2DBD9;
+  --accent:#2E5B53; --accent-ink:#FFFFFF; --accent-soft:#DCE8E5;
+  --open:#5E9A72; --open-bg:#E1EFE5;
+  --blind:#5C7FBF; --blind-bg:#E2E9F6;
+  --hidden:#C2922A; --hidden-bg:#F6ECD3;
+  --unknown:#879190; --unknown-bg:#E7EBEA;
+  --danger:#A6443A;
+  --serif:"Literata", Georgia, "Times New Roman", serif;
+  --sans:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141B1A; --surface:#1D2624; --ink:#E6EEEC; --muted:#9AABA8; --line:#30403D;
+    --accent:#7FB7AB; --accent-ink:#10201D; --accent-soft:#25403B;
+    --open:#86C39B; --open-bg:#1F3328;
+    --blind:#93AEE3; --blind-bg:#1F2A40;
+    --hidden:#E2B655; --hidden-bg:#3A311A;
+    --unknown:#A3ADAB; --unknown-bg:#252E2D;
+    --danger:#E58A7F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141B1A; --surface:#1D2624; --ink:#E6EEEC; --muted:#9AABA8; --line:#30403D;
+  --accent:#7FB7AB; --accent-ink:#10201D; --accent-soft:#25403B;
+  --open:#86C39B; --open-bg:#1F3328;
+  --blind:#93AEE3; --blind-bg:#1F2A40;
+  --hidden:#E2B655; --hidden-bg:#3A311A;
+  --unknown:#A3ADAB; --unknown-bg:#252E2D;
+  --danger:#E58A7F;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 80px}
+h1,h2{font-family:var(--serif);font-weight:600;line-height:1.15;margin:0}
+h1{font-size:clamp(32px,6vw,46px);letter-spacing:-.01em}
+h2{font-size:24px}
+p{margin:0}
+.muted{color:var(--muted)}
+.back{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:500;margin-bottom:18px}
+.back:hover{color:var(--ink)}
+.btn{border:0;border-radius:12px;padding:13px 20px;font-weight:600;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.link{background:none;border:0;padding:4px 0;color:var(--muted);font-size:15px;text-decoration:underline;text-underline-offset:3px}
+.link.danger{color:var(--danger)}
+.field{width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface)}
+.field:focus{outline:none;border-color:var(--accent)}
+.notice{background:var(--hidden-bg);border-radius:12px;padding:12px 16px;font-size:15px;margin-bottom:20px}
+
+/* Home */
+.intro{margin:10px 0 28px;max-width:52ch}
+.create{display:flex;gap:10px;margin-bottom:36px}
+.create .field{flex:1}
+.plist{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.plist li{border-bottom:1px solid var(--line)}
+.plist button{width:100%;display:flex;justify-content:space-between;align-items:baseline;gap:16px;background:none;border:0;padding:18px 4px;text-align:left}
+.plist button:hover .pname{color:var(--accent)}
+.pname{font-family:var(--serif);font-size:22px;font-weight:500}
+.pstat{font-size:15px;color:var(--muted);white-space:nowrap}
+.empty{color:var(--muted);padding:24px 0}
+
+/* Profile */
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:30px 0 18px}
+.role{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:22px 20px;text-align:left}
+.role:hover{border-color:var(--accent)}
+.role strong{display:block;font-size:19px;margin-bottom:4px}
+.role span{color:var(--muted);font-size:15px}
+.cmp{width:100%;padding:16px}
+.hint{font-size:15px;color:var(--muted);margin-top:10px;text-align:center}
+.subs{margin-top:40px}
+.subs h3{font-size:15px;font-weight:600;color:var(--muted);margin:0 0 8px}
+.subs ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.subs li{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line)}
+.foot{margin-top:40px}
+
+/* Sort */
+.sorthead{margin-bottom:16px}
+.sorthead p{margin-top:6px}
+.tray{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 0 14px;margin:0 -4px;padding-left:4px;padding-right:4px;border-bottom:1px solid var(--line)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{min-height:52px;border-radius:12px;display:flex;align-items:center;gap:6px;padding:0 6px 0 4px;font-weight:600;font-size:16px;transition:box-shadow .12s,background .12s}
+.slot.empty{border:1.5px dashed var(--line);color:var(--muted);font-weight:500;justify-content:center;padding:0}
+.slot.filled{background:var(--accent);color:var(--accent-ink)}
+.slot.over{box-shadow:0 0 0 3px var(--hidden)}
+.slot .rank{opacity:.7;font-weight:500;font-size:14px}
+.slot .w{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .x{background:none;border:0;color:inherit;opacity:.75;font-size:20px;line-height:1;padding:6px 8px}
+.slot .x:hover{opacity:1}
+.trayrow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}
+.trayrow .muted{font-size:15px}
+.grip{touch-action:none;cursor:grab;display:inline-flex;align-items:center;justify-content:center;width:30px;align-self:stretch;opacity:.55;font-size:18px;letter-spacing:-3px;user-select:none;-webkit-user-select:none}
+.grip:active{cursor:grabbing}
+.search{margin:16px 0 10px}
+.pool{list-style:none;margin:0;padding:0}
+.tile{display:flex;align-items:stretch;gap:4px;background:var(--surface);border-radius:12px;margin-bottom:6px;border:1.5px solid transparent}
+.tile:hover{border-color:var(--line)}
+.tile .body{flex:1;min-width:0;padding:11px 8px 11px 2px;display:flex;flex-direction:column}
+.tile .body b{font-weight:600}
+.tile .body small{color:var(--muted);font-size:15px;line-height:1.35}
+.tile .num{align-self:center;min-width:26px;text-align:right;padding-right:8px;font-size:15px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.moves{display:flex;align-items:center;gap:2px;padding-right:6px}
+.moves button{background:none;border:0;color:var(--accent);font-size:20px;width:40px;height:40px;border-radius:10px}
+.moves button:hover{background:var(--accent-soft)}
+.tile.dragsrc,.slot.dragsrc{opacity:.35}
+.tile.ins-before{box-shadow:0 -5px 0 -1px var(--hidden)}
+.tile.ins-after{box-shadow:0 5px 0 -1px var(--hidden)}
+.ghost{position:fixed;z-index:50;pointer-events:none;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);transform:translate(-50%,-60%)}
+.dragging,.tray,.pool{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+
+/* Compare */
+.window{margin-top:28px;display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto auto auto;gap:10px}
+.axis{font-size:14px;font-weight:600;color:var(--muted);align-self:end;text-align:center;padding-bottom:2px}
+.axis.side{writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;padding:0 2px}
+.q{border-radius:18px;padding:18px;min-height:180px}
+.q h2{font-size:22px}
+.q p{font-size:14px;color:var(--muted);margin:4px 0 14px;max-width:34ch}
+.q.open{background:var(--open-bg)} .q.open h2{color:var(--open)}
+.q.blind{background:var(--blind-bg)} .q.blind h2{color:var(--blind)}
+.q.hidden{background:var(--hidden-bg)} .q.hidden h2{color:var(--hidden)}
+.q.unknown{background:var(--unknown-bg)} .q.unknown h2{color:var(--unknown)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--surface);border-radius:999px;padding:5px 12px;font-size:15px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.chip i{font-style:normal;font-size:12px;font-weight:700;min-width:20px;height:20px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--ink);color:var(--bg)}
+.q.unknown .chip{background:transparent;padding:2px 8px;color:var(--muted)}
+.none{font-size:15px;color:var(--muted)}
+.legend{font-size:14px;color:var(--muted);margin-top:14px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:15px;z-index:60;max-width:90vw}
+
+@media (max-width:640px){
+  .roles{grid-template-columns:1fr}
+  .slots{grid-template-columns:repeat(2,1fr)}
+  .window{grid-template-columns:1fr;grid-template-rows:none}
+  .axis{display:none}
+  .create{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const ADJ = [
+["Able","Competent and capable of handling tasks effectively"],
+["Accepting","Open to others' ideas and differences without judgment"],
+["Adaptable","Adjusts easily to new situations and environments"],
+["Bold","Willing to take risks and face challenges head-on"],
+["Brave","Shows courage in the face of difficulty or danger"],
+["Calm","Stays composed and peaceful under pressure"],
+["Caring","Shows genuine concern for the well-being of others"],
+["Cheerful","Radiates positivity and good spirits"],
+["Clever","Quick-witted and able to find smart solutions"],
+["Complex","Has many layers to their personality and thinking"],
+["Confident","Trusts in their own abilities and judgment"],
+["Dependable","Consistently trustworthy and keeps promises"],
+["Dignified","Carries themselves with poise and self-respect"],
+["Empathetic","Deeply understands and shares others' feelings"],
+["Energetic","Full of vitality and enthusiasm for activities"],
+["Extroverted","Outgoing and energized by social interactions"],
+["Friendly","Warm and approachable in social settings"],
+["Giving","Generous with time, resources, and attention"],
+["Happy","Generally maintains a joyful and content disposition"],
+["Helpful","Readily offers assistance and support to others"],
+["Idealistic","Driven by high principles and visions for a better world"],
+["Independent","Self-reliant and capable of thinking for themselves"],
+["Ingenious","Inventive and resourceful in solving problems"],
+["Intelligent","Has strong mental ability and learns quickly"],
+["Introverted","Reflective and energized by solitude and inner thought"],
+["Kind","Shows warmth, generosity, and consideration for others"],
+["Knowledgeable","Well-informed and possesses broad understanding"],
+["Logical","Thinks in a clear, rational, and systematic manner"],
+["Loving","Expresses deep affection and care for others"],
+["Mature","Emotionally developed and handles situations wisely"],
+["Modest","Does not boast about their achievements or abilities"],
+["Nervous","Tends to feel anxious or uneasy in certain situations"],
+["Observant","Notices details and subtleties others might miss"],
+["Organized","Keeps things structured and plans ahead systematically"],
+["Patient","Tolerant of delays and able to wait calmly"],
+["Powerful","Commands presence and has the ability to influence others"],
+["Proud","Has a healthy sense of self-worth and accomplishment"],
+["Quiet","Calm and reserved, preferring to listen over speak"],
+["Reflective","Thinks deeply about experiences and their meaning"],
+["Relaxed","Easygoing and not easily stressed by situations"],
+["Religious","Holds strong spiritual or religious beliefs and values"],
+["Responsive","Reacts quickly and appropriately to others' needs"],
+["Searching","Constantly seeking knowledge, meaning, and understanding"],
+["Self-assertive","Confidently expresses their own needs and opinions"],
+["Self-conscious","Highly aware of how they are perceived by others"],
+["Sensible","Practical and shows good judgment in decisions"],
+["Sentimental","Deeply moved by emotions, memories, and feelings"],
+["Shy","Reserved in social situations and slow to open up"],
+["Silly","Playful and enjoys bringing humor and levity"],
+["Spontaneous","Acts on impulse and embraces the unexpected"],
+["Sympathetic","Feels compassion for others' suffering and hardships"],
+["Tense","Often feels wound up or under internal pressure"],
+["Trustworthy","Reliable and honest, earns the trust of others"],
+["Warm","Friendly and affectionate in manner and expression"],
+["Wise","Applies deep understanding and experience to good judgment"],
+["Witty","Clever and humorous in speech and expression"]
+];
+const DESC = Object.fromEntries(ADJ);
+const MAX_FRIENDS = 10;
+
+const S = { profiles:[], subs:[], view:{name:"home"}, db:null, ready:false, offline:false, sort:null, drag:null, armed:null };
+const app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
+/* ---------- data ---------- */
+const KEY = "johari-window:v1";
+function init(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    S.profiles = Array.isArray(saved.profiles) ? saved.profiles : [];
+    S.subs = Array.isArray(saved.subs) ? saved.subs : [];
+  } catch(e) { S.profiles = []; S.subs = []; }
+  S.ready = true;
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  render();
+}
+function persist(){ localStorage.setItem(KEY, JSON.stringify({ profiles:S.profiles, subs:S.subs })); }
+async function put(col, id, data){
+  const arr = col === "profiles" ? S.profiles : S.subs;
+  const i = arr.findIndex(x => x.id === id);
+  if(i >= 0) arr[i] = { id, ...data }; else arr.push({ id, ...data });
+  persist();
+}
+async function del(col, id){
+  const arr = col === "profiles" ? S.profiles : S.subs;
+  const i = arr.findIndex(x => x.id === id); if(i >= 0) arr.splice(i,1);
+  persist();
+}
+async function safely(fn, okMsg){
+  try { await fn(); if(okMsg) toast(okMsg); return true; }
+  catch(e){ toast("That didn't save. This device may be out of storage space."); return false; }
+}
+const profile = id => S.profiles.find(p => p.id === id);
+const subsFor = id => S.subs.filter(s => s.profileId === id);
+const selfOf = id => subsFor(id).find(s => s.role === "self");
+const friendsOf = id => subsFor(id).filter(s => s.role === "friend").sort((a,b) => a.createdAt - b.createdAt);
+
+/* ---------- routing ---------- */
+function go(view){ S.view = view; S.armed = null; render(); window.scrollTo(0,0); }
+
+function render(){
+  const v = S.view;
+  if(v.name === "profile" && !profile(v.id)) S.view = { name:"home" };
+  const html = { home:viewHome, profile:viewProfile, sort:viewSort, compare:viewCompare }[S.view.name]();
+  app.innerHTML = `<div class="wrap">${html}</div>`;
+  const f = app.querySelector("[data-autofocus]"); if(f && S.view.name === "home") f.focus({ preventScroll:true });
+}
+
+/* ---------- home ---------- */
+function viewHome(){
+  const list = [...S.profiles].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  const rows = list.map(p => {
+    const self = selfOf(p.id), n = friendsOf(p.id).length;
+    const stat = `${self ? "Self done" : "Self not yet"}, ${n} ${n === 1 ? "friend" : "friends"}`;
+    return `<li><button data-open="${esc(p.id)}"><span class="pname">${esc(p.name)}</span><span class="pstat">${stat}</span></button></li>`;
+  }).join("");
+  return `
+    <h1>Johari Window</h1>
+    <p class="intro muted">Each person picks the six words that describe them best. Friends do the same for them. Then compare to see what's open, hidden, and unseen.</p>
+    <form class="create" data-create>
+      <input class="field" name="name" placeholder="Person's name, e.g. Jonathan" maxlength="40" autocomplete="off" data-autofocus>
+      <button class="btn" type="submit">Create profile</button>
+    </form>
+    ${!S.ready ? `<p class="empty">Loading profiles…</p>` : rows ? `<ul class="plist">${rows}</ul>` : `<p class="empty">No profiles yet. Add the first person above.</p>`}`;
+}
+
+/* ---------- profile ---------- */
+function viewProfile(){
+  const p = profile(S.view.id), self = selfOf(p.id), friends = friendsOf(p.id);
+  const canCompare = self && friends.length > 0;
+  const full = friends.length >= MAX_FRIENDS;
+  const hint = !self && !friends.length ? `${esc(p.name)} and at least one friend need to finish before comparing.`
+    : !self ? `${esc(p.name)} still needs to finish their own sort.`
+    : !friends.length ? "At least one friend needs to finish before comparing." : "";
+  const subRows = [
+    self ? `<li><span>${esc(p.name)} (self)</span><button class="link danger" data-delsub="${esc(self.id)}">${S.armed === self.id ? "Tap again to delete" : "Delete"}</button></li>` : "",
+    ...friends.map(f => `<li><span>${esc(f.by || "Friend")}</span><button class="link danger" data-delsub="${esc(f.id)}">${S.armed === f.id ? "Tap again to delete" : "Delete"}</button></li>`)
+  ].join("");
+  return `
+    <button class="back" data-home>All profiles</button>
+    <h1>${esc(p.name)}</h1>
+    <p class="muted" style="margin-top:8px">${self ? "Self sort done" : "Self sort not done"}, ${friends.length} of ${MAX_FRIENDS} friends</p>
+    <div class="roles">
+      <button class="role" data-start="self"><strong>I'm ${esc(p.name)}</strong><span>${self ? "Redo your top 6" : "Pick 6 words for yourself"}</span></button>
+      <button class="role" data-start="friend" ${full ? "disabled" : ""}><strong>I'm a friend</strong><span>${full ? "All 10 friend spots are filled" : `Pick 6 words for ${esc(p.name)}`}</span></button>
+    </div>
+    <button class="btn cmp" data-compare ${canCompare ? "" : "disabled"}>Compare results</button>
+    ${hint ? `<p class="hint">${hint}</p>` : ""}
+    ${subRows ? `<div class="subs"><h3>Submitted</h3><ul>${subRows}</ul></div>` : ""}
+    <div class="foot"><button class="link danger" data-delprofile>${S.armed === "profile" ? "Tap again to delete this profile and all its results" : "Delete profile"}</button></div>`;
+}
+
+/* ---------- sort ---------- */
+/* One ranking: top (up to 6) followed by bank (the rest, in the order the person arranges). */
+function startSort(role){
+  const pid = S.view.id, self = selfOf(pid);
+  const top = role === "self" && self ? [...self.top6] : [];
+  const saved = role === "self" && self && Array.isArray(self.ranking) ? self.ranking : ADJ.map(a => a[0]);
+  const bank = saved.filter(w => DESC[w] && !top.includes(w));
+  ADJ.forEach(([w]) => { if(!top.includes(w) && !bank.includes(w)) bank.push(w); });
+  S.sort = { pid, role, top, bank, by:"", q:"" };
+  go({ name:"sort", id:pid });
+}
+function viewSort(){
+  const st = S.sort, p = profile(st.pid);
+  const isSelf = st.role === "self";
+  const slots = Array.from({ length:6 }, (_, i) => {
+    const w = st.top[i];
+    return w
+      ? `<div class="slot filled" data-slot="${i}"><span class="grip" data-drag="top" data-i="${i}" aria-hidden="true">⋮⋮</span><span class="rank">${i+1}</span><span class="w">${esc(w)}</span><button class="x" data-out="${i}" aria-label="Move ${esc(w)} out of top 6" title="Move out of top 6">×</button></div>`
+      : `<div class="slot empty" data-slot="${i}">${i+1}</div>`;
+  }).join("");
+  const q = st.q.toLowerCase();
+  const pool = st.bank.map((w, i) =>
+    `<li class="tile" data-word="${esc(w)}" data-bi="${i}" ${q && !w.toLowerCase().includes(q) ? "hidden" : ""}>
+      <span class="grip" data-drag="bank" data-i="${i}" aria-hidden="true">⋮⋮</span>
+      <span class="num">${i + 7}</span>
+      <div class="body"><b>${esc(w)}</b><small>${esc(DESC[w])}</small></div>
+      <div class="moves">
+        <button data-up="${i}" aria-label="Send ${esc(w)} to top" title="Send to top">⤒</button>
+        <button data-down="${i}" aria-label="Send ${esc(w)} to bottom" title="Send to bottom">⤓</button>
+      </div>
+    </li>`).join("");
+  return `
+    <button class="back" data-backprofile>${esc(p ? p.name : "Back")}</button>
+    <div class="sorthead">
+      <h2>${isSelf ? "Which 6 words describe you best?" : `Which 6 words describe ${esc(p.name)} best?`}</h2>
+      <p class="muted">Drag ⋮⋮ to move words up or down. ⤒ sends a word to the top, ⤓ to the bottom. The top 6 are your answer.</p>
+      ${isSelf ? "" : `<input class="field" style="margin-top:14px" data-by placeholder="Your name (optional)" maxlength="30" value="${esc(st.by)}">`}
+    </div>
+    <div class="tray" data-tray>
+      <div class="slots">${slots}</div>
+      <div class="trayrow">
+        <span class="muted">${st.top.length} of 6 chosen</span>
+        <button class="btn" data-submit ${st.top.length === 6 ? "" : "disabled"}>Save</button>
+      </div>
+    </div>
+    <input class="field search" type="search" data-q placeholder="Find a word" value="${esc(st.q)}">
+    <ul class="pool">${pool}</ul>`;
+}
+function renderKeepScroll(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
+
+function sendToTop(i){
+  const st = S.sort, [w] = st.bank.splice(i, 1);
+  st.top.unshift(w);
+  if(st.top.length > 6) st.bank.unshift(st.top.pop());
+  renderKeepScroll();
+}
+function sendToBottom(i){
+  const st = S.sort, [w] = st.bank.splice(i, 1);
+  st.bank.push(w); renderKeepScroll();
+}
+function moveOut(i){
+  const st = S.sort, [w] = st.top.splice(i, 1);
+  st.bank.unshift(w); renderKeepScroll();
+}
+
+async function submitSort(){
+  const st = S.sort, p = profile(st.pid);
+  if(!p || st.top.length !== 6) return;
+  if(st.role === "friend" && friendsOf(st.pid).length >= MAX_FRIENDS){ toast("All 10 friend spots are filled."); return; }
+  const id = st.role === "self" ? `${st.pid}_self` : uid();
+  const by = st.role === "self" ? p.name : (st.by.trim() || `Friend ${friendsOf(st.pid).length + 1}`);
+  const ok = await safely(() => put("submissions", id, { profileId:st.pid, role:st.role, by, top6:[...st.top], ranking:[...st.top, ...st.bank], createdAt:Date.now() }), "Saved");
+  if(ok){ S.sort = null; go({ name:"profile", id:p.id }); }
+}
+
+/* drag (pointer events, works with touch), with auto-scroll near the edges */
+function onPointerDown(e){
+  const g = e.target.closest("[data-drag]"); if(!g || !S.sort) return;
+  e.preventDefault();
+  const src = g.dataset.drag, i = +g.dataset.i;
+  const w = src === "top" ? S.sort.top[i] : S.sort.bank[i];
+  S.drag = { src, i, w, x:e.clientX, y:e.clientY, cx:e.clientX, cy:e.clientY, ghost:null, over:null, raf:0, el:g.closest(".tile,.slot") };
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+}
+function onPointerMove(e){
+  const d = S.drag; if(!d) return;
+  d.cx = e.clientX; d.cy = e.clientY;
+  if(!d.ghost){
+    if(Math.hypot(e.clientX - d.x, e.clientY - d.y) < 5) return;
+    d.ghost = document.createElement("div"); d.ghost.className = "ghost"; d.ghost.textContent = d.w;
+    document.body.appendChild(d.ghost); document.body.classList.add("dragging");
+    if(d.el) d.el.classList.add("dragsrc");
+    d.raf = requestAnimationFrame(autoScroll);
+  }
+  d.ghost.style.left = e.clientX + "px"; d.ghost.style.top = e.clientY + "px";
+  updateOver();
+}
+function autoScroll(){
+  const d = S.drag; if(!d) return;
+  const tray = app.querySelector("[data-tray]");
+  const trayBottom = tray ? tray.getBoundingClientRect().bottom : 0;
+  const y = d.cy, edge = 70;
+  let v = 0;
+  if(y > trayBottom && y < trayBottom + edge) v = -Math.ceil((trayBottom + edge - y) / 5);
+  else if(y > innerHeight - edge) v = Math.ceil((y - (innerHeight - edge)) / 5);
+  if(v){ window.scrollBy(0, v); updateOver(); }
+  d.raf = requestAnimationFrame(autoScroll);
+}
+function clearMarks(){ app.querySelectorAll(".over,.ins-before,.ins-after").forEach(n => n.classList.remove("over","ins-before","ins-after")); }
+function updateOver(){
+  const d = S.drag; if(!d) return;
+  clearMarks();
+  const el = document.elementFromPoint(d.cx, d.cy);
+  const slot = el && el.closest("[data-slot]");
+  const tile = el && el.closest(".tile");
+  if(slot){ slot.classList.add("over"); d.over = { type:"slot", i:+slot.dataset.slot }; }
+  else if(tile && tile !== d.el){
+    const r = tile.getBoundingClientRect(), before = d.cy < r.top + r.height / 2;
+    tile.classList.add(before ? "ins-before" : "ins-after");
+    d.over = { type:"bank", i:+tile.dataset.bi + (before ? 0 : 1) };
+  }
+  else if(el && el.closest("[data-tray]")) d.over = { type:"tray" };
+  else d.over = null;
+}
+function onPointerUp(){
+  window.removeEventListener("pointermove", onPointerMove);
+  window.removeEventListener("pointerup", onPointerUp);
+  window.removeEventListener("pointercancel", onPointerUp);
+  const d = S.drag; S.drag = null;
+  document.body.classList.remove("dragging");
+  if(!d || !d.ghost) return;
+  cancelAnimationFrame(d.raf); d.ghost.remove(); clearMarks();
+  if(d.el) d.el.classList.remove("dragsrc");
+  const { top, bank } = S.sort, o = d.over;
+  if(!o){ renderKeepScroll(); return; }
+  if(d.src === "top"){
+    if(o.type === "slot"){ top.splice(d.i, 1); top.splice(Math.min(o.i, top.length), 0, d.w); }
+    else if(o.type === "bank"){ top.splice(d.i, 1); bank.splice(o.i, 0, d.w); }
+  } else {
+    if(o.type === "slot"){
+      bank.splice(d.i, 1);
+      top.splice(Math.min(o.i, top.length), 0, d.w);
+      if(top.length > 6) bank.unshift(top.pop());
+    } else if(o.type === "bank"){
+      let k = o.i; bank.splice(d.i, 1); if(k > d.i) k--; bank.splice(k, 0, d.w);
+    } else if(o.type === "tray"){
+      if(top.length < 6){ bank.splice(d.i, 1); top.push(d.w); } else toast("Drop onto a slot to put it in your top 6.");
+    }
+  }
+  renderKeepScroll();
+}
+
+/* ---------- compare ---------- */
+function viewCompare(){
+  const p = profile(S.view.id), self = selfOf(p.id), friends = friendsOf(p.id);
+  const selfSet = new Set(self ? self.top6 : []);
+  const count = {};
+  friends.forEach(f => (f.top6 || []).forEach(w => count[w] = (count[w] || 0) + 1));
+  const byCount = (a,b) => (count[b]||0) - (count[a]||0) || a.localeCompare(b);
+  const open = [...selfSet].filter(w => count[w]).sort(byCount);
+  const blind = Object.keys(count).filter(w => !selfSet.has(w)).sort(byCount);
+  const hidden = (self ? self.top6 : []).filter(w => !count[w]);
+  const unknown = ADJ.map(a => a[0]).filter(w => !selfSet.has(w) && !count[w]);
+  const total = w => (count[w] || 0) + (selfSet.has(w) ? 1 : 0);
+  const anyRepeat = [...open, ...blind].some(w => total(w) > 1);
+  const chips = (arr) => arr.length
+    ? `<div class="chips">${arr.map(w => `<span class="chip" title="${esc(DESC[w] || "")}">${esc(w)}${total(w) > 1 ? `<i aria-label="chosen ${total(w)} times">${total(w)}</i>` : ""}</span>`).join("")}</div>`
+    : `<p class="none">No words here.</p>`;
+  return `
+    <button class="back" data-backprofile>${esc(p.name)}</button>
+    <h1>${esc(p.name)}'s window</h1>
+    <p class="muted" style="margin-top:8px">${esc(p.name)} compared with ${friends.length} ${friends.length === 1 ? "friend" : "friends"}</p>
+    <div class="window">
+      <span></span><span class="axis">Known to self</span><span class="axis">Not known to self</span>
+      <span class="axis side">Known to others</span>
+      <section class="q open"><h2>Open</h2><p>Chosen by ${esc(p.name)} and by friends.</p>${chips(open)}</section>
+      <section class="q blind"><h2>Blind spot</h2><p>Chosen by friends but not by ${esc(p.name)}.</p>${chips(blind)}</section>
+      <span class="axis side">Not known to others</span>
+      <section class="q hidden"><h2>Hidden</h2><p>Chosen by ${esc(p.name)} but not by friends.</p>${chips(hidden)}</section>
+      <section class="q unknown"><h2>Unknown</h2><p>Chosen by no one.</p>${chips(unknown)}</section>
+    </div>
+    ${anyRepeat ? `<p class="legend">Numbers show how many times a word was chosen in total, by ${esc(p.name)} and friends combined.</p>` : ""}`;
+}
+
+/* ---------- events ---------- */
+app.addEventListener("submit", e => {
+  if(!e.target.matches("[data-create]")) return;
+  e.preventDefault();
+  const name = e.target.name.value.trim();
+  if(!name){ toast("Enter a name to create a profile."); return; }
+  const id = uid();
+  safely(() => put("profiles", id, { name, createdAt:Date.now() })).then(ok => { if(ok) go({ name:"profile", id }); });
+});
+app.addEventListener("click", e => {
+  const t = e.target.closest("button"); if(!t) return;
+  const ds = t.dataset;
+  if(ds.open){ go({ name:"profile", id:ds.open }); }
+  else if("home" in ds){ go({ name:"home" }); }
+  else if("backprofile" in ds){ S.sort = null; go({ name:"profile", id:S.view.id }); }
+  else if(ds.start){ startSort(ds.start); }
+  else if("compare" in ds){ go({ name:"compare", id:S.view.id }); }
+  else if(ds.up !== undefined){ sendToTop(+ds.up); }
+  else if(ds.down !== undefined){ sendToBottom(+ds.down); }
+  else if(ds.out !== undefined){ moveOut(+ds.out); }
+  else if("submit" in ds){ submitSort(); }
+  else if(ds.delsub){
+    if(S.armed !== ds.delsub){ S.armed = ds.delsub; render(); return; }
+    S.armed = null; safely(() => del("submissions", ds.delsub), "Deleted").then(render);
+  }
+  else if("delprofile" in ds){
+    if(S.armed !== "profile"){ S.armed = "profile"; render(); return; }
+    const pid = S.view.id;
+    safely(async () => { for(const s of subsFor(pid)) await del("submissions", s.id); await del("profiles", pid); }, "Profile deleted").then(() => go({ name:"home" }));
+  }
+});
+app.addEventListener("input", e => {
+  if(!S.sort) return;
+  if(e.target.matches("[data-by]")) S.sort.by = e.target.value;
+  if(e.target.matches("[data-q]")){
+    S.sort.q = e.target.value;
+    const q = S.sort.q.toLowerCase();
+    app.querySelectorAll(".tile").forEach(li => li.hidden = !!q && !li.dataset.word.toLowerCase().includes(q));
+  }
+});
+app.addEventListener("pointerdown", onPointerDown);
+
+let toastTimer;
+function toast(msg){
+  let el = document.querySelector(".toast");
+  if(!el){ el = document.createElement("div"); el.className = "toast"; el.setAttribute("role","status"); document.body.appendChild(el); }
+  el.textContent = msg; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 2800);
+}
+init();
+if("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
